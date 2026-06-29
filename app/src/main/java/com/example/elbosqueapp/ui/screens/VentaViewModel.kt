@@ -269,4 +269,8 @@ class VentaViewModel(
     fun limpiarMensaje() {
         _mensaje.value = null
     }
+
+    fun mostrarMensaje(texto: String) {
+        _mensaje.value = texto
+    }
 }

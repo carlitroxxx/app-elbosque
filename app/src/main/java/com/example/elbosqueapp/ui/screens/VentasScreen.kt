@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -18,6 +19,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.elbosqueapp.data.local.ProductoEntity
@@ -37,6 +46,9 @@ fun VentasScreen(viewModel: VentaViewModel) {
     val mensaje by viewModel.mensaje.collectAsState()
 
     var textoBusqueda by remember { mutableStateOf("") }
+    var codigoProducto by remember { mutableStateOf("") }
+    val codigoFocusRequester = remember { FocusRequester() }
+    var enfocarCodigoPendiente by remember { mutableStateOf(false) }
     var productoSeleccionado by remember { mutableStateOf<ProductoEntity?>(null) }
     var itemSeleccionado by remember { mutableStateOf<ItemVenta?>(null) }
     var mostrandoProductos by remember { mutableStateOf(false) }
@@ -46,12 +58,44 @@ fun VentasScreen(viewModel: VentaViewModel) {
         viewModel.cargarProductos()
     }
 
+    LaunchedEffect(enfocarCodigoPendiente, mostrandoProductos, productoSeleccionado) {
+        if (enfocarCodigoPendiente && !mostrandoProductos && productoSeleccionado == null) {
+            codigoFocusRequester.requestFocus()
+            enfocarCodigoPendiente = false
+        }
+    }
+
     val productosFiltrados = productos
         .filter {
             it.descripcion.contains(textoBusqueda, ignoreCase = true) ||
                     it.codigo.contains(textoBusqueda, ignoreCase = true)
         }
         .sortedBy { it.descripcion }
+
+    fun buscarProductoPorCodigo() {
+        val codigoIngresado = codigoProducto.trim()
+
+        if (codigoIngresado.isEmpty()) {
+            return
+        }
+
+        val producto = productos.firstOrNull { producto ->
+            producto.codigo.trim() == codigoIngresado
+        }
+
+        if (producto == null) {
+            viewModel.mostrarMensaje("Producto no encontrado")
+            return
+        }
+
+        if (esGranel(producto.tipoVenta)) {
+            productoSeleccionado = producto
+        } else {
+            viewModel.agregarProductoUnidad(producto, 1)
+            codigoProducto = ""
+            enfocarCodigoPendiente = true
+        }
+    }
 
     if (mostrandoProductos) {
         PantallaAgregarProductoVenta(
@@ -70,7 +114,11 @@ fun VentasScreen(viewModel: VentaViewModel) {
         PantallaVentaActual(
             ventaActual = ventaActual,
             totalVenta = totalVenta,
-            onAgregarProducto = {
+            codigoProducto = codigoProducto,
+            codigoFocusRequester = codigoFocusRequester,
+            onCodigoProductoChange = { codigoProducto = it },
+            onCodigoProductoDone = { buscarProductoPorCodigo() },
+            onBuscarProducto = {
                 mostrandoProductos = true
             },
             onVaciarVenta = {
@@ -92,18 +140,27 @@ fun VentasScreen(viewModel: VentaViewModel) {
     productoSeleccionado?.let { producto ->
         DialogoAgregarProductoVenta(
             producto = producto,
-            onDismiss = { productoSeleccionado = null },
+            onDismiss = {
+                productoSeleccionado = null
+                if (!mostrandoProductos) {
+                    enfocarCodigoPendiente = true
+                }
+            },
             onAgregarUnidad = { cantidad ->
                 viewModel.agregarProductoUnidad(producto, cantidad)
                 productoSeleccionado = null
                 mostrandoProductos = false
                 textoBusqueda = ""
+                codigoProducto = ""
+                enfocarCodigoPendiente = true
             },
             onAgregarGranel = { monto ->
                 viewModel.agregarProductoGranel(producto, monto)
                 productoSeleccionado = null
                 mostrandoProductos = false
                 textoBusqueda = ""
+                codigoProducto = ""
+                enfocarCodigoPendiente = true
             }
         )
     }
@@ -157,7 +214,11 @@ fun VentasScreen(viewModel: VentaViewModel) {
 fun PantallaVentaActual(
     ventaActual: List<ItemVenta>,
     totalVenta: Double,
-    onAgregarProducto: () -> Unit,
+    codigoProducto: String,
+    codigoFocusRequester: FocusRequester,
+    onCodigoProductoChange: (String) -> Unit,
+    onCodigoProductoDone: () -> Unit,
+    onBuscarProducto: () -> Unit,
     onVaciarVenta: () -> Unit,
     onFinalizarVenta: () -> Unit,
     onItemClick: (ItemVenta) -> Unit
@@ -178,13 +239,39 @@ fun PantallaVentaActual(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        OutlinedTextField(
+            value = codigoProducto,
+            onValueChange = onCodigoProductoChange,
+            label = { Text("Código del producto") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(codigoFocusRequester)
+                .onPreviewKeyEvent { event ->
+                    if (event.key == Key.Enter && event.type == KeyEventType.KeyDown) {
+                        onCodigoProductoDone()
+                        true
+                    } else {
+                        false
+                    }
+                },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { onCodigoProductoDone() }
+            )
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Button(
-            onClick = onAgregarProducto,
+            onClick = onBuscarProducto,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = VerdePrincipal),
             shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
         ) {
-            Text("Agregar producto")
+            Text("Buscar producto")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
