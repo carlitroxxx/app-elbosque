@@ -563,7 +563,7 @@ fun DialogoAgregarProductoVenta(
 
                     OutlinedTextField(
                         value = texto,
-                        onValueChange = { texto = it },
+                        onValueChange = { texto = soloNumeros(it) },
                         label = { Text("Monto marcado en la pesa") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -583,7 +583,7 @@ fun DialogoAgregarProductoVenta(
 
                     OutlinedTextField(
                         value = texto,
-                        onValueChange = { texto = it },
+                        onValueChange = { texto = soloNumeros(it) },
                         label = { Text("Cantidad") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -657,7 +657,7 @@ fun DialogoEditarItemVenta(
 
                     OutlinedTextField(
                         value = texto,
-                        onValueChange = { texto = it },
+                        onValueChange = { texto = soloNumeros(it) },
                         label = { Text("Nuevo monto pesado") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -675,7 +675,7 @@ fun DialogoEditarItemVenta(
 
                     OutlinedTextField(
                         value = texto,
-                        onValueChange = { texto = it },
+                        onValueChange = { texto = soloNumeros(it) },
                         label = { Text("Nueva cantidad") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -690,6 +690,10 @@ fun DialogoEditarItemVenta(
 
 private fun esGranel(tipoVenta: String): Boolean {
     return tipoVenta.trim().equals("GRANEL", ignoreCase = true)
+}
+
+private fun soloNumeros(texto: String): String {
+    return texto.filter { it.isDigit() }
 }
 
 private fun formatoDinero(valor: Double): String {
