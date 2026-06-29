@@ -116,7 +116,7 @@ fun VentasScreen(viewModel: VentaViewModel) {
             totalVenta = totalVenta,
             codigoProducto = codigoProducto,
             codigoFocusRequester = codigoFocusRequester,
-            onCodigoProductoChange = { codigoProducto = it },
+            onCodigoProductoChange = { codigoProducto = it.uppercase(Locale.ROOT) },
             onCodigoProductoDone = { buscarProductoPorCodigo() },
             onBuscarProducto = {
                 mostrandoProductos = true
