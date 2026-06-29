@@ -30,6 +30,9 @@ class VentaViewModel(
     private val _mensaje = MutableStateFlow<String?>(null)
     val mensaje: StateFlow<String?> = _mensaje
 
+    private val _guardandoVenta = MutableStateFlow(false)
+    val guardandoVenta: StateFlow<Boolean> = _guardandoVenta
+
     private val _historialVentas = MutableStateFlow<List<VentaEntity>>(emptyList())
     val historialVentas: StateFlow<List<VentaEntity>> = _historialVentas
 
@@ -229,6 +232,10 @@ class VentaViewModel(
     }
 
     fun finalizarVenta() {
+        if (_guardandoVenta.value) {
+            return
+        }
+
         val items = _ventaActual.value
 
         if (items.isEmpty()) {
@@ -236,33 +243,39 @@ class VentaViewModel(
             return
         }
 
+        _guardandoVenta.value = true
+
         viewModelScope.launch {
-            val total = items.sumOf { it.subtotal }
+            try {
+                val total = items.sumOf { it.subtotal }
 
-            val venta = VentaEntity(
-                fecha = System.currentTimeMillis(),
-                tipoPago = _tipoPago.value,
-                total = total
-            )
-
-            val itemsEntity = items.map {
-                ItemVentaEntity(
-                    ventaId = 0,
-                    codigo = it.codigo,
-                    producto = it.producto,
-                    tipoVenta = it.tipoVenta,
-                    cantidad = it.cantidad,
-                    precioUnitario = it.precioUnitario,
-                    subtotal = it.subtotal
+                val venta = VentaEntity(
+                    fecha = System.currentTimeMillis(),
+                    tipoPago = _tipoPago.value,
+                    total = total
                 )
+
+                val itemsEntity = items.map {
+                    ItemVentaEntity(
+                        ventaId = 0,
+                        codigo = it.codigo,
+                        producto = it.producto,
+                        tipoVenta = it.tipoVenta,
+                        cantidad = it.cantidad,
+                        precioUnitario = it.precioUnitario,
+                        subtotal = it.subtotal
+                    )
+                }
+
+                repository.guardarVenta(venta, itemsEntity)
+
+                _ventaActual.value = emptyList()
+                _historialVentas.value = repository.obtenerVentas()
+                _tipoPago.value = "Efectivo"
+                _mensaje.value = "Venta guardada correctamente"
+            } finally {
+                _guardandoVenta.value = false
             }
-
-            repository.guardarVenta(venta, itemsEntity)
-
-            _ventaActual.value = emptyList()
-            _historialVentas.value = repository.obtenerVentas()
-            _tipoPago.value = "Efectivo"
-            _mensaje.value = "Venta guardada correctamente"
         }
     }
 

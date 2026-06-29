@@ -70,8 +70,8 @@ class MainActivity : ComponentActivity() {
                 val productoViewModel: ProductoViewModel = viewModel(factory = productoFactory)
                 val ventaViewModel: VentaViewModel = viewModel(factory = ventaFactory)
 
-                var moduloActual by remember { mutableStateOf(ModuloApp.INVENTARIO) }
-                var pantallaActual by remember { mutableStateOf(Pantalla.PRODUCTOS) }
+                var moduloActual by remember { mutableStateOf(ModuloApp.VENTAS) }
+                var pantallaActual by remember { mutableStateOf(Pantalla.VENTAS) }
                 var selectedVentaId by remember { mutableStateOf<Long?>(null) }
 
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -142,20 +142,20 @@ class MainActivity : ComponentActivity() {
                             }
 
                             NavigationDrawerItem(
-                                icon = { Text("\uD83D\uDCE6") },
-                                label = { Text("Inventario") },
-                                selected = moduloActual == ModuloApp.INVENTARIO,
-                                onClick = { seleccionarModulo(ModuloApp.INVENTARIO) },
+                                icon = { Text("\uD83D\uDCB5") },
+                                label = { Text("Ventas") },
+                                selected = moduloActual == ModuloApp.VENTAS,
+                                onClick = { seleccionarModulo(ModuloApp.VENTAS) },
                                 modifier = Modifier.padding(horizontal = 12.dp)
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
                             NavigationDrawerItem(
-                                icon = { Text("\uD83D\uDCB5") },
-                                label = { Text("Ventas") },
-                                selected = moduloActual == ModuloApp.VENTAS,
-                                onClick = { seleccionarModulo(ModuloApp.VENTAS) },
+                                icon = { Text("\uD83D\uDCE6") },
+                                label = { Text("Inventario") },
+                                selected = moduloActual == ModuloApp.INVENTARIO,
+                                onClick = { seleccionarModulo(ModuloApp.INVENTARIO) },
                                 modifier = Modifier.padding(horizontal = 12.dp)
                             )
                         }

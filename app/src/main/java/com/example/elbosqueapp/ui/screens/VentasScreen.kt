@@ -46,6 +46,7 @@ fun VentasScreen(
     val productos by viewModel.productos.collectAsState()
     val ventaActual by viewModel.ventaActual.collectAsState()
     val totalVenta by viewModel.totalVenta.collectAsState()
+    val guardandoVenta by viewModel.guardandoVenta.collectAsState()
     val mensaje by viewModel.mensaje.collectAsState()
 
     var textoBusqueda by remember { mutableStateOf("") }
@@ -65,6 +66,12 @@ fun VentasScreen(
         if (enfocarCodigoPendiente && !mostrandoProductos && productoSeleccionado == null) {
             codigoFocusRequester.requestFocus()
             enfocarCodigoPendiente = false
+        }
+    }
+
+    LaunchedEffect(guardandoVenta, ventaActual, mostrarDialogoPago) {
+        if (mostrarDialogoPago && !guardandoVenta && ventaActual.isEmpty()) {
+            mostrarDialogoPago = false
         }
     }
 
@@ -118,6 +125,7 @@ fun VentasScreen(
         PantallaVentaActual(
             ventaActual = ventaActual,
             totalVenta = totalVenta,
+            guardandoVenta = guardandoVenta,
             codigoProducto = codigoProducto,
             codigoFocusRequester = codigoFocusRequester,
             onCodigoProductoChange = { codigoProducto = it.uppercase(Locale.ROOT) },
@@ -130,10 +138,12 @@ fun VentasScreen(
                 viewModel.vaciarVenta()
             },
             onFinalizarVenta = {
-                if (ventaActual.isEmpty()) {
-                    viewModel.finalizarVenta()
-                } else {
-                    mostrarDialogoPago = true
+                if (!guardandoVenta) {
+                    if (ventaActual.isEmpty()) {
+                        viewModel.finalizarVenta()
+                    } else {
+                        mostrarDialogoPago = true
+                    }
                 }
             },
             onItemClick = { item ->
@@ -192,11 +202,13 @@ fun VentasScreen(
     if (mostrarDialogoPago) {
         DialogoFinalizarVenta(
             totalVenta = totalVenta,
-            onDismiss = { mostrarDialogoPago = false },
+            guardandoVenta = guardandoVenta,
+            onDismiss = { if (!guardandoVenta) mostrarDialogoPago = false },
             onConfirmar = { tipoPago ->
-                viewModel.seleccionarTipoPago(tipoPago)
-                viewModel.finalizarVenta()
-                mostrarDialogoPago = false
+                if (!guardandoVenta) {
+                    viewModel.seleccionarTipoPago(tipoPago)
+                    viewModel.finalizarVenta()
+                }
             }
         )
     }
@@ -219,6 +231,7 @@ fun VentasScreen(
 fun PantallaVentaActual(
     ventaActual: List<ItemVenta>,
     totalVenta: Double,
+    guardandoVenta: Boolean,
     codigoProducto: String,
     codigoFocusRequester: FocusRequester,
     onCodigoProductoChange: (String) -> Unit,
@@ -329,11 +342,12 @@ fun PantallaVentaActual(
 
             Button(
                 onClick = onFinalizarVenta,
+                enabled = !guardandoVenta,
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = VerdePrincipal),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
             ) {
-                Text("Finalizar venta")
+                Text(if (guardandoVenta) "Guardando..." else "Finalizar venta")
             }
         }
     }
@@ -476,24 +490,31 @@ fun ItemVentaCard(
 @Composable
 fun DialogoFinalizarVenta(
     totalVenta: Double,
+    guardandoVenta: Boolean,
     onDismiss: () -> Unit,
     onConfirmar: (String) -> Unit
 ) {
     var tipoPagoSeleccionado by remember { mutableStateOf("Efectivo") }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!guardandoVenta) onDismiss() },
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirmar(tipoPagoSeleccionado)
-                }
+                    if (!guardandoVenta) {
+                        onConfirmar(tipoPagoSeleccionado)
+                    }
+                },
+                enabled = !guardandoVenta
             ) {
-                Text("Guardar venta")
+                Text(if (guardandoVenta) "Guardando..." else "Guardar venta")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !guardandoVenta
+            ) {
                 Text("Cancelar")
             }
         },
