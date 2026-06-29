@@ -3,12 +3,18 @@ package com.example.elbosqueapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -18,7 +24,9 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.elbosqueapp.data.local.AppDatabase
@@ -98,13 +106,43 @@ class MainActivity : ComponentActivity() {
                     drawerState = drawerState,
                     drawerContent = {
                         ModalDrawerSheet {
-                            Text(
-                                text = "Modulos",
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(16.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            drawerState.close()
+                                        }
+                                    }
+                                ) {
+                                    Text(
+                                        text = "\u2630",
+                                        style = MaterialTheme.typography.titleLarge
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                Image(
+                                    painter = painterResource(id = R.drawable.logo),
+                                    contentDescription = "Logo",
+                                    modifier = Modifier.size(48.dp)
+                                )
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Text(
+                                    text = "El Bosque App",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
 
                             NavigationDrawerItem(
+                                icon = { Text("\uD83D\uDCE6") },
                                 label = { Text("Inventario") },
                                 selected = moduloActual == ModuloApp.INVENTARIO,
                                 onClick = { seleccionarModulo(ModuloApp.INVENTARIO) },
@@ -114,6 +152,7 @@ class MainActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.height(8.dp))
 
                             NavigationDrawerItem(
+                                icon = { Text("\uD83D\uDCB5") },
                                 label = { Text("Ventas") },
                                 selected = moduloActual == ModuloApp.VENTAS,
                                 onClick = { seleccionarModulo(ModuloApp.VENTAS) },
@@ -180,7 +219,7 @@ class MainActivity : ComponentActivity() {
                                             pantallaActual = Pantalla.PRODUCTOS
                                         },
                                         label = { Text("Productos") },
-                                        icon = { Text("P") }
+                                        icon = { Text("\uD83D\uDCE6") }
                                     )
 
                                     NavigationBarItem(
@@ -190,7 +229,7 @@ class MainActivity : ComponentActivity() {
                                             pantallaActual = Pantalla.PEDIDO
                                         },
                                         label = { Text("Pedido") },
-                                        icon = { Text("$cantidadTotalPedido") }
+                                        icon = { Text("\uD83D\uDED2 $cantidadTotalPedido") }
                                     )
                                 }
 
@@ -202,7 +241,7 @@ class MainActivity : ComponentActivity() {
                                             pantallaActual = Pantalla.VENTAS
                                         },
                                         label = { Text("Ventas") },
-                                        icon = { Text("$cantidadProductosVenta") }
+                                        icon = { Text("\uD83D\uDCB5 $cantidadProductosVenta") }
                                     )
 
                                     NavigationBarItem(
@@ -213,7 +252,7 @@ class MainActivity : ComponentActivity() {
                                             pantallaActual = Pantalla.HISTORIAL_VENTAS
                                         },
                                         label = { Text("Historial") },
-                                        icon = { Text("H") }
+                                        icon = { Text("\uD83E\uDDFE") }
                                     )
                                 }
                             }
