@@ -38,7 +38,10 @@ import com.example.elbosqueapp.ui.theme.VerdePrincipal
 import java.util.Locale
 
 @Composable
-fun VentasScreen(viewModel: VentaViewModel) {
+fun VentasScreen(
+    viewModel: VentaViewModel,
+    onMenuClick: (() -> Unit)? = null
+) {
 
     val productos by viewModel.productos.collectAsState()
     val ventaActual by viewModel.ventaActual.collectAsState()
@@ -106,6 +109,7 @@ fun VentasScreen(viewModel: VentaViewModel) {
                 mostrandoProductos = false
                 textoBusqueda = ""
             },
+            onMenuClick = onMenuClick,
             onProductoClick = { producto ->
                 productoSeleccionado = producto
             }
@@ -121,6 +125,7 @@ fun VentasScreen(viewModel: VentaViewModel) {
             onBuscarProducto = {
                 mostrandoProductos = true
             },
+            onMenuClick = onMenuClick,
             onVaciarVenta = {
                 viewModel.vaciarVenta()
             },
@@ -219,6 +224,7 @@ fun PantallaVentaActual(
     onCodigoProductoChange: (String) -> Unit,
     onCodigoProductoDone: () -> Unit,
     onBuscarProducto: () -> Unit,
+    onMenuClick: (() -> Unit)? = null,
     onVaciarVenta: () -> Unit,
     onFinalizarVenta: () -> Unit,
     onItemClick: (ItemVenta) -> Unit
@@ -230,11 +236,9 @@ fun PantallaVentaActual(
             .statusBarsPadding()
             .padding(16.dp)
     ) {
-        Header(titulo = "Ventas")
-
-        Text(
-            text = "Total venta: ${formatoDinero(totalVenta)}",
-            style = MaterialTheme.typography.titleLarge
+        Header(
+            titulo = "Ventas",
+            onMenuClick = onMenuClick
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -276,10 +280,20 @@ fun PantallaVentaActual(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Venta actual",
-            style = MaterialTheme.typography.titleMedium
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Venta actual",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Text(
+                text = "Total: ${formatoDinero(totalVenta)}",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
 
         Spacer(modifier = Modifier.height(6.dp))
 
@@ -331,6 +345,7 @@ fun PantallaAgregarProductoVenta(
     textoBusqueda: String,
     onTextoBusquedaChange: (String) -> Unit,
     onVolver: () -> Unit,
+    onMenuClick: (() -> Unit)? = null,
     onProductoClick: (ProductoEntity) -> Unit
 ) {
     Column(
@@ -340,7 +355,10 @@ fun PantallaAgregarProductoVenta(
             .statusBarsPadding()
             .padding(16.dp)
     ) {
-        Header(titulo = "Agregar producto")
+        Header(
+            titulo = "Agregar producto",
+            onMenuClick = onMenuClick
+        )
 
         Button(
             onClick = onVolver,

@@ -26,7 +26,10 @@ import com.example.elbosqueapp.ui.theme.VerdeClaro
 import com.example.elbosqueapp.ui.theme.VerdePrincipal
 
 @Composable
-fun PedidoScreen(viewModel: ProductoViewModel) {
+fun PedidoScreen(
+    viewModel: ProductoViewModel,
+    onMenuClick: (() -> Unit)? = null
+) {
 
     val pedido by viewModel.pedido.collectAsState()
     val total by viewModel.total.collectAsState()
@@ -40,7 +43,10 @@ fun PedidoScreen(viewModel: ProductoViewModel) {
             .statusBarsPadding()
             .padding(16.dp)
     ) {
-        Header("Pedido actual")
+        Header(
+            titulo = "Pedido actual",
+            onMenuClick = onMenuClick
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 

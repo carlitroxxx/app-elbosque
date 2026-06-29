@@ -33,7 +33,8 @@ import java.util.Locale
 @Composable
 fun HistorialVentasScreen(
     viewModel: VentaViewModel,
-    onVentaClick: (VentaEntity) -> Unit
+    onVentaClick: (VentaEntity) -> Unit,
+    onMenuClick: (() -> Unit)? = null
 ) {
     val ventas by viewModel.historialVentas.collectAsState()
     val cargando by viewModel.cargandoHistorialVentas.collectAsState()
@@ -49,7 +50,10 @@ fun HistorialVentasScreen(
             .statusBarsPadding()
             .padding(16.dp)
     ) {
-        Header(titulo = "Historial de ventas")
+        Header(
+            titulo = "Historial de ventas",
+            onMenuClick = onMenuClick
+        )
 
         when {
             cargando -> Text("Cargando ventas...")

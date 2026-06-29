@@ -29,7 +29,10 @@ import com.example.elbosqueapp.ui.theme.FondoCrema
 import com.example.elbosqueapp.ui.theme.VerdePrincipal
 
 @Composable
-fun ProductosScreen(viewModel: ProductoViewModel) {
+fun ProductosScreen(
+    viewModel: ProductoViewModel,
+    onMenuClick: (() -> Unit)? = null
+) {
 
     val context = LocalContext.current
     val productos by viewModel.productos.collectAsState()
@@ -75,7 +78,8 @@ fun ProductosScreen(viewModel: ProductoViewModel) {
                 excelLauncher.launch(
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
-            }
+            },
+            onMenuClick = onMenuClick
         )
 
         Spacer(modifier = Modifier.height(2.dp))

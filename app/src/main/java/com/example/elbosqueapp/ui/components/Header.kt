@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,7 +19,8 @@ import com.example.elbosqueapp.ui.theme.VerdePrincipal
 fun Header(
     titulo: String,
     botonTexto: String? = null,
-    onBotonClick: (() -> Unit)? = null
+    onBotonClick: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -26,6 +28,17 @@ fun Header(
             .padding(bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (onMenuClick != null) {
+            IconButton(onClick = onMenuClick) {
+                Text(
+                    text = "\u2630",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+
+            Spacer(modifier = Modifier.width(4.dp))
+        }
+
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo",

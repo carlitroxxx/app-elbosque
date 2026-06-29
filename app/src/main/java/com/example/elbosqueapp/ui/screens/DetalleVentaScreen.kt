@@ -44,7 +44,8 @@ fun DetalleVentaScreen(
     viewModel: VentaViewModel,
     ventaId: Long?,
     onVolver: () -> Unit,
-    onVentaEliminada: () -> Unit
+    onVentaEliminada: () -> Unit,
+    onMenuClick: (() -> Unit)? = null
 ) {
     val venta by viewModel.ventaDetalle.collectAsState()
     val itemsDetalle by viewModel.itemsDetalleVenta.collectAsState()
@@ -69,7 +70,8 @@ fun DetalleVentaScreen(
         Header(
             titulo = "Detalle venta",
             botonTexto = "Volver",
-            onBotonClick = onVolver
+            onBotonClick = onVolver,
+            onMenuClick = onMenuClick
         )
 
         when {
