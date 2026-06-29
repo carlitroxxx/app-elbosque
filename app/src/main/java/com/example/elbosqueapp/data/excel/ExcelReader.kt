@@ -21,7 +21,6 @@ class ExcelReader {
                 var codigo = leerTexto(row.getCell(0))
                 var descripcion = leerTexto(row.getCell(1))
 
-                // Por si alguna fila viene con código y producto invertidos
                 if (codigo.length > 20 || descripcion.all { it.isDigit() }) {
                     val temp = codigo
                     codigo = descripcion
@@ -33,9 +32,9 @@ class ExcelReader {
                     descripcion = descripcion,
                     costo = leerNumero(row.getCell(2)),
                     precioVenta = leerNumero(row.getCell(3)),
-                    existencia = leerNumero(row.getCell(5)).toInt(),
-                    inventarioMinimo = leerNumero(row.getCell(6)).toInt(),
-                    tipoVenta = leerTexto(row.getCell(8))
+                    existencia = leerNumero(row.getCell(6)).toInt(),
+                    inventarioMinimo = leerNumero(row.getCell(7)).toInt(),
+                    tipoVenta = leerTexto(row.getCell(9)).uppercase()
                 )
 
                 if (producto.codigo.isNotBlank() && producto.descripcion.isNotBlank()) {
@@ -58,9 +57,10 @@ class ExcelReader {
 
         val texto = cell.toString()
             .replace("$", "")
-            .replace(".", "")   // 🔥 CLAVE para Chile
+            .replace(".", "")
             .replace(",", "")
             .replace(" ", "")
+            .replace("-", "0")
             .trim()
 
         return texto.toDoubleOrNull() ?: 0.0
