@@ -30,6 +30,21 @@ class VentaViewModel(
     private val _mensaje = MutableStateFlow<String?>(null)
     val mensaje: StateFlow<String?> = _mensaje
 
+    private val _historialVentas = MutableStateFlow<List<VentaEntity>>(emptyList())
+    val historialVentas: StateFlow<List<VentaEntity>> = _historialVentas
+
+    private val _cargandoHistorialVentas = MutableStateFlow(false)
+    val cargandoHistorialVentas: StateFlow<Boolean> = _cargandoHistorialVentas
+
+    private val _ventaDetalle = MutableStateFlow<VentaEntity?>(null)
+    val ventaDetalle: StateFlow<VentaEntity?> = _ventaDetalle
+
+    private val _itemsDetalleVenta = MutableStateFlow<List<ItemVentaEntity>>(emptyList())
+    val itemsDetalleVenta: StateFlow<List<ItemVentaEntity>> = _itemsDetalleVenta
+
+    private val _cargandoDetalleVenta = MutableStateFlow(false)
+    val cargandoDetalleVenta: StateFlow<Boolean> = _cargandoDetalleVenta
+
     val totalVenta: StateFlow<Double> = _ventaActual.map { lista ->
         lista.sumOf { it.subtotal }
     }.stateIn(
@@ -49,6 +64,38 @@ class VentaViewModel(
     fun cargarProductos() {
         viewModelScope.launch {
             _productos.value = repository.obtenerProductos()
+        }
+    }
+
+    fun cargarHistorialVentas() {
+        viewModelScope.launch {
+            _cargandoHistorialVentas.value = true
+            _historialVentas.value = repository.obtenerVentas()
+            _cargandoHistorialVentas.value = false
+        }
+    }
+
+    fun cargarDetalleVenta(ventaId: Long) {
+        viewModelScope.launch {
+            _cargandoDetalleVenta.value = true
+            _ventaDetalle.value = repository.obtenerVentaPorId(ventaId)
+            _itemsDetalleVenta.value = repository.obtenerItemsDeVenta(ventaId)
+            _cargandoDetalleVenta.value = false
+        }
+    }
+
+    fun limpiarDetalleVenta() {
+        _ventaDetalle.value = null
+        _itemsDetalleVenta.value = emptyList()
+        _cargandoDetalleVenta.value = false
+    }
+
+    fun eliminarVenta(ventaId: Long, onEliminada: () -> Unit) {
+        viewModelScope.launch {
+            repository.eliminarVentaCompleta(ventaId)
+            limpiarDetalleVenta()
+            _historialVentas.value = repository.obtenerVentas()
+            onEliminada()
         }
     }
 
@@ -213,6 +260,7 @@ class VentaViewModel(
             repository.guardarVenta(venta, itemsEntity)
 
             _ventaActual.value = emptyList()
+            _historialVentas.value = repository.obtenerVentas()
             _tipoPago.value = "Efectivo"
             _mensaje.value = "Venta guardada correctamente"
         }
