@@ -7,11 +7,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -123,85 +128,97 @@ class MainActivity : ComponentActivity() {
                     drawerState = drawerState,
                     drawerContent = {
                         ModalDrawerSheet {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconButton(
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .verticalScroll(rememberScrollState())
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        IconButton(
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    drawerState.close()
+                                                }
+                                            },
+                                            modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                                        ) {
+                                            Text(
+                                                text = "\u2630",
+                                                style = MaterialTheme.typography.titleLarge
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(4.dp))
+
+
+
+                                        Text(
+                                            text = "El Bosque App",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.weight(1f),
+                                            maxLines = 2,
+                                            softWrap = true
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Image(
+                                            painter = painterResource(id = R.drawable.logo),
+                                            contentDescription = "Logo",
+                                            modifier = Modifier.size(44.dp)
+                                        )
+
+                                    }
+
+                                    NavigationDrawerItem(
+                                        icon = { Text("\uD83D\uDCB5") },
+                                        label = { Text("Ventas", maxLines = 2, softWrap = true) },
+                                        selected = moduloActual == ModuloApp.VENTAS,
+                                        onClick = { seleccionarModulo(ModuloApp.VENTAS) },
+                                        modifier = Modifier.padding(horizontal = 12.dp)
+                                    )
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    NavigationDrawerItem(
+                                        icon = { Text("\uD83D\uDCE6") },
+                                        label = { Text("Inventario", maxLines = 2, softWrap = true) },
+                                        selected = moduloActual == ModuloApp.INVENTARIO,
+                                        onClick = { seleccionarModulo(ModuloApp.INVENTARIO) },
+                                        modifier = Modifier.padding(horizontal = 12.dp)
+                                    )
+                                }
+
+                                Button(
                                     onClick = {
                                         coroutineScope.launch {
                                             drawerState.close()
                                         }
-                                    }
+                                        excelLauncher.launch(
+                                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                                        .heightIn(min = 48.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = VerdePrincipal,
+                                        contentColor = Color.White
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
                                 ) {
-                                    Text(
-                                        text = "\u2630",
-                                        style = MaterialTheme.typography.titleLarge
-                                    )
+                                    Text("Cargar Excel", maxLines = 2, softWrap = true)
                                 }
-
-                                Spacer(modifier = Modifier.width(4.dp))
-
-                                Image(
-                                    painter = painterResource(id = R.drawable.logo),
-                                    contentDescription = "Logo",
-                                    modifier = Modifier.size(48.dp)
-                                )
-
-                                Spacer(modifier = Modifier.width(12.dp))
-
-                                Text(
-                                    text = "El Bosque App",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-
-                            NavigationDrawerItem(
-                                icon = { Text("\uD83D\uDCB5") },
-                                label = { Text("Ventas") },
-                                selected = moduloActual == ModuloApp.VENTAS,
-                                onClick = { seleccionarModulo(ModuloApp.VENTAS) },
-                                modifier = Modifier.padding(horizontal = 12.dp)
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            NavigationDrawerItem(
-                                icon = { Text("\uD83D\uDCE6") },
-                                label = { Text("Inventario") },
-                                selected = moduloActual == ModuloApp.INVENTARIO,
-                                onClick = { seleccionarModulo(ModuloApp.INVENTARIO) },
-                                modifier = Modifier.padding(horizontal = 12.dp)
-                            )
-
-                            Spacer(modifier = Modifier.weight(1f))
-
-                            Button(
-                                onClick = {
-                                    coroutineScope.launch {
-                                        drawerState.close()
-                                    }
-                                    excelLauncher.launch(
-                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                    )
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = VerdePrincipal,
-                                    contentColor = Color.White
-                                ),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text("Cargar Excel")
                             }
                         }
                     }
                 ) {
-                    Column {
+                    Column(modifier = Modifier.fillMaxSize()) {
                         Box(
                             modifier = Modifier.weight(1f)
                         ) {
@@ -258,7 +275,7 @@ class MainActivity : ComponentActivity() {
                                             selectedVentaId = null
                                             pantallaActual = Pantalla.PRODUCTOS
                                         },
-                                        label = { Text("Productos") },
+                                        label = { Text("Productos", maxLines = 2, softWrap = true) },
                                         icon = { Text("\uD83D\uDCE6") }
                                     )
 
@@ -268,8 +285,8 @@ class MainActivity : ComponentActivity() {
                                             selectedVentaId = null
                                             pantallaActual = Pantalla.PEDIDO
                                         },
-                                        label = { Text("Pedido") },
-                                        icon = { Text("\uD83D\uDED2 $cantidadTotalPedido") }
+                                        label = { Text("Pedido", maxLines = 2, softWrap = true) },
+                                        icon = { Text("\uD83D\uDED2 $cantidadTotalPedido", maxLines = 1, softWrap = false) }
                                     )
                                 }
 
@@ -280,8 +297,8 @@ class MainActivity : ComponentActivity() {
                                             selectedVentaId = null
                                             pantallaActual = Pantalla.VENTAS
                                         },
-                                        label = { Text("Ventas") },
-                                        icon = { Text("\uD83D\uDCB5 $cantidadProductosVenta") }
+                                        label = { Text("Ventas", maxLines = 2, softWrap = true) },
+                                        icon = { Text("\uD83D\uDCB5 $cantidadProductosVenta", maxLines = 1, softWrap = false) }
                                     )
 
                                     NavigationBarItem(
@@ -291,7 +308,7 @@ class MainActivity : ComponentActivity() {
                                             selectedVentaId = null
                                             pantallaActual = Pantalla.HISTORIAL_VENTAS
                                         },
-                                        label = { Text("Historial") },
+                                        label = { Text("Historial", maxLines = 2, softWrap = true) },
                                         icon = { Text("\uD83E\uDDFE") }
                                     )
                                 }

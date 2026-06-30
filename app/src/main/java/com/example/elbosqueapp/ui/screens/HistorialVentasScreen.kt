@@ -3,6 +3,7 @@ package com.example.elbosqueapp.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.elbosqueapp.data.local.VentaEntity
 import com.example.elbosqueapp.ui.components.Header
+import com.example.elbosqueapp.ui.components.responsiveInfo
 import com.example.elbosqueapp.ui.theme.FondoCrema
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -43,30 +45,34 @@ fun HistorialVentasScreen(
         viewModel.cargarHistorialVentas()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(FondoCrema)
-            .statusBarsPadding()
-            .padding(16.dp)
-    ) {
-        Header(
-            titulo = "Historial de ventas",
-            onMenuClick = onMenuClick
-        )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val responsive = responsiveInfo(maxWidth)
 
-        when {
-            cargando -> Text("Cargando ventas...")
-            ventas.isEmpty() -> Text("No hay ventas guardadas")
-            else -> LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(ventas, key = { it.id }) { venta ->
-                    VentaHistorialCard(
-                        venta = venta,
-                        onClick = { onVentaClick(venta) }
-                    )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(FondoCrema)
+                .statusBarsPadding()
+                .padding(responsive.paddingPantalla)
+        ) {
+            Header(
+                titulo = "Historial de ventas",
+                onMenuClick = onMenuClick
+            )
+
+            when {
+                cargando -> Text("Cargando ventas...")
+                ventas.isEmpty() -> Text("No hay ventas guardadas")
+                else -> LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(responsive.espacio)
+                ) {
+                    items(ventas, key = { it.id }) { venta ->
+                        VentaHistorialCard(
+                            venta = venta,
+                            onClick = { onVentaClick(venta) }
+                        )
+                    }
                 }
             }
         }
@@ -85,7 +91,8 @@ private fun VentaHistorialCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
                 text = formatoFechaHistorial(venta.fecha),
@@ -94,7 +101,7 @@ private fun VentaHistorialCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text("Pago: " + venta.tipoPago)
+            Text("Pago: " + venta.tipoPago, softWrap = true)
             Text(
                 text = "Total: " + formatoDineroHistorial(venta.total),
                 color = MaterialTheme.colorScheme.primary,

@@ -1,14 +1,19 @@
 package com.example.elbosqueapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,7 +24,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import com.example.elbosqueapp.data.local.ItemVentaEntity
 import com.example.elbosqueapp.data.local.VentaEntity
 import com.example.elbosqueapp.ui.components.Header
+import com.example.elbosqueapp.ui.components.ResponsiveButtonPair
+import com.example.elbosqueapp.ui.components.responsiveInfo
 import com.example.elbosqueapp.ui.theme.ErrorBt
 import com.example.elbosqueapp.ui.theme.FondoCrema
 import java.text.NumberFormat
@@ -60,29 +66,35 @@ fun DetalleVentaScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(FondoCrema)
-            .statusBarsPadding()
-            .padding(16.dp)
-    ) {
-        Header(
-            titulo = "Detalle venta",
-            botonTexto = "Volver",
-            onBotonClick = onVolver,
-            onMenuClick = onMenuClick
-        )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val responsive = responsiveInfo(maxWidth)
 
-        when {
-            ventaId == null -> Text("No hay una venta seleccionada")
-            cargando -> Text("Cargando venta...")
-            venta == null -> Text("Venta no encontrada")
-            else -> DetalleVentaContenido(
-                venta = venta!!,
-                itemsDetalle = itemsDetalle,
-                onEliminarClick = { mostrarConfirmacionEliminar = true }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(FondoCrema)
+                .statusBarsPadding()
+                .padding(responsive.paddingPantalla)
+        ) {
+            Header(
+                titulo = "Detalle venta",
+                botonTexto = "Volver",
+                onBotonClick = onVolver,
+                onMenuClick = onMenuClick
             )
+
+            when {
+                ventaId == null -> Text("No hay una venta seleccionada")
+                cargando -> Text("Cargando venta...")
+                venta == null -> Text("Venta no encontrada")
+                else -> DetalleVentaContenido(
+                    venta = venta!!,
+                    itemsDetalle = itemsDetalle,
+                    onEliminarClick = { mostrarConfirmacionEliminar = true },
+                    buttonMinHeight = responsive.alturaBoton,
+                    spacing = responsive.espacio
+                )
+            }
         }
     }
 
@@ -90,46 +102,68 @@ fun DetalleVentaScreen(
         AlertDialog(
             onDismissRequest = { mostrarConfirmacionEliminar = false },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        ventaId?.let { id ->
-                            mostrarConfirmacionEliminar = false
-                            viewModel.eliminarVenta(id, onVentaEliminada)
+                ResponsiveButtonPair(
+                    first = { modifier ->
+                        Button(
+                            onClick = { mostrarConfirmacionEliminar = false },
+                            modifier = modifier,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Cancelar", maxLines = 2, softWrap = true)
+                        }
+                    },
+                    second = { modifier ->
+                        Button(
+                            onClick = {
+                                ventaId?.let { id ->
+                                    mostrarConfirmacionEliminar = false
+                                    viewModel.eliminarVenta(id, onVentaEliminada)
+                                }
+                            },
+                            modifier = modifier,
+                            colors = ButtonDefaults.buttonColors(containerColor = ErrorBt),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Eliminar", maxLines = 2, softWrap = true)
                         }
                     }
-                ) {
-                    Text("Eliminar")
-                }
+                )
             },
-            dismissButton = {
-                TextButton(onClick = { mostrarConfirmacionEliminar = false }) {
-                    Text("Cancelar")
+            title = { Text("Eliminar venta", maxLines = 2, softWrap = true) },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text("Esta venta y sus productos se eliminaran definitivamente.")
                 }
-            },
-            title = { Text("Eliminar venta") },
-            text = { Text("Esta venta y sus productos se eliminaran definitivamente.") }
+            }
         )
     }
+
 }
 
 @Composable
 private fun ColumnScope.DetalleVentaContenido(
     venta: VentaEntity,
     itemsDetalle: List<ItemVentaEntity>,
-    onEliminarClick: () -> Unit
+    onEliminarClick: () -> Unit,
+    buttonMinHeight: androidx.compose.ui.unit.Dp,
+    spacing: androidx.compose.ui.unit.Dp
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
                 text = formatoFechaDetalle(venta.fecha),
                 style = MaterialTheme.typography.titleMedium
             )
-            Text("Pago: " + venta.tipoPago)
+            Text("Pago: " + venta.tipoPago, softWrap = true)
             Text(
                 text = "Total: " + formatoDineroDetalle(venta.total),
                 color = MaterialTheme.colorScheme.primary,
@@ -138,7 +172,7 @@ private fun ColumnScope.DetalleVentaContenido(
         }
     }
 
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(spacing))
 
     Text(
         text = "Productos vendidos",
@@ -161,11 +195,13 @@ private fun ColumnScope.DetalleVentaContenido(
         }
     }
 
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(spacing))
 
     Button(
         onClick = onEliminarClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = buttonMinHeight),
         colors = ButtonDefaults.buttonColors(containerColor = ErrorBt),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
     ) {
@@ -186,7 +222,8 @@ private fun ItemDetalleVentaCard(item: ItemVentaEntity) {
         ) {
             Text(
                 text = item.producto,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                softWrap = true
             )
             Text("Codigo: " + item.codigo)
 

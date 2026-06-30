@@ -1,6 +1,8 @@
 package com.example.elbosqueapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,13 +17,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import com.example.elbosqueapp.ui.components.Header
+import com.example.elbosqueapp.ui.components.ResponsiveButtonPair
+import com.example.elbosqueapp.ui.components.responsiveInfo
 import com.example.elbosqueapp.ui.theme.FondoCrema
 import com.example.elbosqueapp.ui.theme.VerdePrincipal
 
@@ -52,88 +56,109 @@ fun ProductosScreen(
         .sortedBy {
             it.existencia > it.inventarioMinimo
         }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(FondoCrema)
-            .statusBarsPadding()
-            .padding(16.dp)
-    ) {
-        Header(
-            titulo = "Productos",
-            onMenuClick = onMenuClick
-        )
 
-        Spacer(modifier = Modifier.height(2.dp))
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val responsive = responsiveInfo(maxWidth)
 
-
-
-        OutlinedTextField(
-            value = textoBusqueda,
-            onValueChange = { textoBusqueda = it },
-            label = { Text("Buscar producto") },
-            modifier = Modifier.fillMaxWidth(),
-            leadingIcon = {
-                Text("🔍")
-            },
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        Button(
-            onClick = { soloBajoStock = !soloBajoStock },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = VerdePrincipal
-            ),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(FondoCrema)
+                .statusBarsPadding()
+                .padding(responsive.paddingPantalla)
         ) {
-            Text(
-                if (soloBajoStock) "Mostrar todos"
-                else "Ver bajo stock"
+            Header(
+                titulo = "Productos",
+                onMenuClick = onMenuClick
             )
-        }
 
-        Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
-        LazyColumn {
-            items(items = productosFiltrados) { producto ->
-                ProductoItem(
-                    producto = producto,
-                    onClick = { productoSeleccionado = producto }
+            OutlinedTextField(
+                value = textoBusqueda,
+                onValueChange = { textoBusqueda = it },
+                label = { Text("Buscar producto") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(responsive.espacio))
+
+            Button(
+                onClick = { soloBajoStock = !soloBajoStock },
+                modifier = Modifier.heightIn(min = responsive.alturaBoton),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = VerdePrincipal
+                ),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = if (soloBajoStock) "Mostrar todos" else "Ver bajo stock",
+                    maxLines = 2,
+                    softWrap = true
                 )
             }
-        }
-        productoSeleccionado?.let { producto ->
-            AlertDialog(
-                onDismissRequest = { productoSeleccionado = null },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            viewModel.agregarAlPedido(producto)
-                            productoSeleccionado = null
-                        }
-                    ) {
-                        Text("Agregar al pedido")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { productoSeleccionado = null }) {
-                        Text("Cerrar")
-                    }
-                },
-                title = {
-                    Text(producto.descripcion)
-                },
-                text = {
-                    Column {
-                        Text("Código: ${producto.codigo}")
-                        Text("Costo: ${producto.costo}")
-                        Text("Precio: ${producto.precioVenta}")
-                        Text("Stock: ${producto.existencia}")
-                    }
+
+            Spacer(modifier = Modifier.height(responsive.espacio))
+
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                items(items = productosFiltrados) { producto ->
+                    ProductoItem(
+                        producto = producto,
+                        onClick = { productoSeleccionado = producto }
+                    )
                 }
-            )
+            }
+            productoSeleccionado?.let { producto ->
+                AlertDialog(
+                    onDismissRequest = { productoSeleccionado = null },
+                    confirmButton = {
+                        ResponsiveButtonPair(
+                            first = { modifier ->
+                                Button(
+                                    onClick = { productoSeleccionado = null },
+                                    modifier = modifier,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondary
+                                    ),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Cerrar", maxLines = 2, softWrap = true)
+                                }
+                            },
+                            second = { modifier ->
+                                Button(
+                                    onClick = {
+                                        viewModel.agregarAlPedido(producto)
+                                        productoSeleccionado = null
+                                    },
+                                    modifier = modifier,
+                                    colors = ButtonDefaults.buttonColors(containerColor = VerdePrincipal),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Agregar", maxLines = 2, softWrap = true)
+                                }
+                            }
+                        )
+                    },
+                    title = {
+                        Text(producto.descripcion)
+                    },
+                    text = {
+                        Column(
+                            modifier = Modifier.verticalScroll(rememberScrollState())
+                        ) {
+                            Text("C\u00f3digo: ${producto.codigo}")
+                            Text("Costo: ${producto.costo}")
+                            Text("Precio: ${producto.precioVenta}")
+                            Text("Stock: ${producto.existencia}")
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -146,47 +171,22 @@ fun ProductoItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
                 text = producto.codigo,
-                style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+                style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+                softWrap = true
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = producto.descripcion,
-                style = androidx.compose.material3.MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Compra: $${producto.costo.toInt()}",
-                color = androidx.compose.material3.MaterialTheme.colorScheme.secondary
-            )
-
-            Text(
-                text = "Venta: $${producto.precioVenta.toInt()}",
-                color = androidx.compose.material3.MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(text = "Stock: ${producto.existencia}")
-
-            if (producto.existencia <= producto.inventarioMinimo) {
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "⚠ Bajo stock",
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.error
-                )
-            }
+            Text(producto.descripcion, softWrap = true)
+            Text("Stock: ${producto.existencia}")
+            Text("Mínimo: ${producto.inventarioMinimo}")
+            Text("Precio: $${producto.precioVenta.toInt()}")
         }
     }
 }

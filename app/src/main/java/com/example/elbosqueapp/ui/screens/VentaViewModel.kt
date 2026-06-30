@@ -223,6 +223,52 @@ class VentaViewModel(
         }
     }
 
+    fun aumentarUnidad(codigo: String) {
+        val lista = _ventaActual.value.toMutableList()
+        val index = lista.indexOfFirst { it.codigo == codigo }
+
+        if (index == -1) {
+            return
+        }
+
+        val item = lista[index]
+        if (esGranel(item.tipoVenta)) {
+            return
+        }
+
+        val nuevaCantidad = item.cantidad + 1.0
+        lista[index] = item.copy(
+            cantidad = nuevaCantidad,
+            subtotal = nuevaCantidad * item.precioUnitario
+        )
+        _ventaActual.value = lista
+    }
+
+    fun disminuirUnidad(codigo: String) {
+        val lista = _ventaActual.value.toMutableList()
+        val index = lista.indexOfFirst { it.codigo == codigo }
+
+        if (index == -1) {
+            return
+        }
+
+        val item = lista[index]
+        if (esGranel(item.tipoVenta)) {
+            return
+        }
+
+        val nuevaCantidad = item.cantidad - 1.0
+        if (nuevaCantidad <= 0.0) {
+            lista.removeAt(index)
+        } else {
+            lista[index] = item.copy(
+                cantidad = nuevaCantidad,
+                subtotal = nuevaCantidad * item.precioUnitario
+            )
+        }
+        _ventaActual.value = lista
+    }
+
     fun eliminarItem(codigo: String) {
         _ventaActual.value = _ventaActual.value.filterNot { it.codigo == codigo }
     }
@@ -285,5 +331,9 @@ class VentaViewModel(
 
     fun mostrarMensaje(texto: String) {
         _mensaje.value = texto
+    }
+
+    private fun esGranel(tipoVenta: String): Boolean {
+        return tipoVenta.trim().equals("GRANEL", ignoreCase = true)
     }
 }
