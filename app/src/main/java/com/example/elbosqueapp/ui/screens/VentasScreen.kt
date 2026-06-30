@@ -1,7 +1,9 @@
 package com.example.elbosqueapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
@@ -15,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -26,14 +29,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.elbosqueapp.R
 import com.example.elbosqueapp.data.local.ProductoEntity
 import com.example.elbosqueapp.data.model.ItemVenta
 import com.example.elbosqueapp.ui.components.Header
@@ -376,9 +385,9 @@ fun PantallaVentaActual(
                 .statusBarsPadding()
                 .padding(horizontal = responsive.paddingPantalla, vertical = 8.dp)
         ) {
-            Header(
-                titulo = "Ventas",
-                onMenuClick = onMenuClick
+            HeaderVentas(
+                onMenuClick = onMenuClick,
+                onBuscarClick = onBuscarProducto
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -406,19 +415,6 @@ fun PantallaVentaActual(
                     onDone = { onCodigoProductoDone() }
                 )
             )
-
-            Spacer(modifier = Modifier.height(responsive.espacio))
-
-            Button(
-                onClick = onBuscarProducto,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = responsive.alturaBoton),
-                colors = ButtonDefaults.buttonColors(containerColor = VerdePrincipal),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-            ) {
-                Text("Buscar producto", maxLines = 2, softWrap = true)
-            }
 
             Spacer(modifier = Modifier.height(responsive.espacio))
 
@@ -503,6 +499,81 @@ fun PantallaVentaActual(
                 }
             )
         }
+    }
+}
+
+@Composable
+private fun HeaderVentas(
+    onMenuClick: (() -> Unit)?,
+    onBuscarClick: () -> Unit
+) {
+    val usaFuenteGrande = LocalDensity.current.fontScale >= 1.2f
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = if (usaFuenteGrande) 6.dp else 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (onMenuClick != null) {
+            IconButton(
+                onClick = onMenuClick,
+                modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+            ) {
+                Text(
+                    text = "\u2630",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+        }
+
+        Text(
+            text = "Ventas",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.weight(1f),
+            maxLines = if (usaFuenteGrande) 2 else 1,
+            softWrap = true
+        )
+
+        IconButton(
+            onClick = onBuscarClick,
+            modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+        ) {
+            IconoBuscar(modifier = Modifier.size(24.dp))
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "Logo",
+            modifier = Modifier.size(if (usaFuenteGrande) 36.dp else 40.dp)
+        )
+    }
+}
+
+@Composable
+private fun IconoBuscar(modifier: Modifier = Modifier) {
+    val color = MaterialTheme.colorScheme.onSurface
+
+    Canvas(modifier = modifier) {
+        val radio = size.minDimension * 0.32f
+        val centro = Offset(size.width * 0.43f, size.height * 0.43f)
+        val grosor = 2.2.dp.toPx()
+
+        drawCircle(
+            color = color,
+            radius = radio,
+            center = centro,
+            style = Stroke(width = grosor)
+        )
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.65f, size.height * 0.65f),
+            end = Offset(size.width * 0.88f, size.height * 0.88f),
+            strokeWidth = grosor,
+            cap = StrokeCap.Round
+        )
     }
 }
 
