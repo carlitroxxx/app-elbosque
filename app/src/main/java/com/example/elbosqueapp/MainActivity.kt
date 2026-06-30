@@ -2,8 +2,11 @@ package com.example.elbosqueapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +31,8 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,6 +51,7 @@ import com.example.elbosqueapp.ui.screens.VentaViewModel
 import com.example.elbosqueapp.ui.screens.VentaViewModelFactory
 import com.example.elbosqueapp.ui.screens.VentasScreen
 import com.example.elbosqueapp.ui.theme.ElBosqueAppTheme
+import com.example.elbosqueapp.ui.theme.VerdePrincipal
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -69,6 +77,15 @@ class MainActivity : ComponentActivity() {
             ElBosqueAppTheme {
                 val productoViewModel: ProductoViewModel = viewModel(factory = productoFactory)
                 val ventaViewModel: VentaViewModel = viewModel(factory = ventaFactory)
+                val context = LocalContext.current
+
+                val excelLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.GetContent()
+                ) { uri ->
+                    uri?.let {
+                        productoViewModel.importarExcel(context, it)
+                    }
+                }
 
                 var moduloActual by remember { mutableStateOf(ModuloApp.VENTAS) }
                 var pantallaActual by remember { mutableStateOf(Pantalla.VENTAS) }
@@ -158,6 +175,29 @@ class MainActivity : ComponentActivity() {
                                 onClick = { seleccionarModulo(ModuloApp.INVENTARIO) },
                                 modifier = Modifier.padding(horizontal = 12.dp)
                             )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        drawerState.close()
+                                    }
+                                    excelLauncher.launch(
+                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = VerdePrincipal,
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("Cargar Excel")
+                            }
                         }
                     }
                 ) {
